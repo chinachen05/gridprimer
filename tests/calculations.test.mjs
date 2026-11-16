@@ -1,0 +1,7 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';
+import {percentageChange,columnToNumber,numberToColumn,summarizeNumbers} from '../assets/calculations.js';
+const close=(a,b)=>assert.ok(Math.abs(a-b)<1e-9,`${a} ≠ ${b}`);
+test('percentage change uses the positive starting value',()=>{close(percentageChange(80,100).percent,25);close(percentageChange(100,80).percent,-20);assert.equal(percentageChange(100,0).percent,-100);assert.throws(()=>percentageChange(0,1));assert.throws(()=>percentageChange(1,-1))});
+test('spreadsheet column labels round-trip across boundaries',()=>{for(const [n,s] of [[1,'A'],[26,'Z'],[27,'AA'],[52,'AZ'],[53,'BA'],[702,'ZZ'],[703,'AAA'],[16384,'XFD']]){assert.equal(numberToColumn(n),s);assert.equal(columnToNumber(s.toLowerCase()),n)}assert.throws(()=>columnToNumber('XFE'));assert.throws(()=>numberToColumn(0));assert.throws(()=>columnToNumber('A1'))});
+test('column summary handles signed values, zero and even/odd medians',()=>{let x=summarizeNumbers('8\n12\n5\n0\n15\n');assert.equal(x.count,5);close(x.sum,40);close(x.mean,8);close(x.median,8);assert.equal(x.min,0);assert.equal(x.max,15);assert.equal(x.range,15);let y=summarizeNumbers('-4\n-2\n2\n4');close(y.median,0);close(y.mean,0)});
+test('column summary rejects ambiguous or invalid input',()=>{assert.throws(()=>summarizeNumbers(''));assert.throws(()=>summarizeNumbers('1,234'));assert.throws(()=>summarizeNumbers('=1+2'));assert.throws(()=>summarizeNumbers('1\nabc'));assert.throws(()=>summarizeNumbers(Array(5001).fill('1').join('\n'))) });
